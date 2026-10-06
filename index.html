@@ -1,0 +1,293 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b34">
+  <title>Safety Plus | Detection Test</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <svg class="icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+    <symbol id="scan" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5M3 12h18"/></symbol>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></symbol>
+    <symbol id="download" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 17v4h16v-4"/></symbol>
+    <symbol id="image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-7 5 8"/></symbol>
+    <symbol id="video" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m10 8 6 4-6 4Z"/></symbol>
+  </defs></svg>
+
+  <header class="app-header">
+    <a class="brand" href="#" aria-label="Safety Plus"><span class="brand-icon"><svg><use href="#shield"/></svg></span><span>Safety <b>Plus<span class="plus">+</span></b><small>SAFETY PLUS</small></span></a>
+    <span id="connection-status" class="connection">جاري الاتصال…</span>
+  </header>
+
+  <main>
+    <div id="local-preview-note" class="notice" hidden><svg><use href="#shield"/></svg><p>أنت في معاينة الواجهة. لتجربة الكشف شغّل <code dir="ltr">python app.py</code> من هذا المجلد؛ ستفتح اللوحة تلقائيًا في المتصفح.</p></div>
+    <div class="studio">
+      <section class="panel controls" aria-labelledby="input-title">
+        <div class="panel-heading"><div><span class="step">01</span><h1 id="input-title">إعداد التحليل</h1></div><span class="eyebrow">INPUT</span></div>
+        <div class="control-content">
+          <div class="type-tabs" role="group" aria-label="نوع الملف"><button type="button" class="selected" data-kind="image"><svg><use href="#image"/></svg> صورة</button><button type="button" data-kind="video"><svg><use href="#video"/></svg> فيديو</button></div>
+          <input id="file-input" type="file" accept=".jpg,.jpeg,.png,.webp,.bmp" hidden>
+          <button id="dropzone" class="dropzone" type="button"><span class="upload-icon"><svg><use href="#upload"/></svg></span><strong>اسحب ملفك هنا</strong><span>أو <b>تصفّح الملفات</b> من جهازك</span><small id="format-hint">JPG, PNG, WEBP, BMP · حتى 100 MB</small></button>
+          <div id="selected-file" class="selected-file" hidden><svg><use href="#image"/></svg><div><strong id="file-name"></strong><small id="file-size"></small></div><button id="remove-file" type="button" aria-label="إزالة الملف">×</button></div>
+          <div class="settings"><div class="label-row"><label for="confidence">الحد الأدنى للثقة</label><output id="confidence-value" for="confidence">25%</output></div><input type="range" id="confidence" min="5" max="95" step="5" value="25"><div class="range-labels"><span>كشف أكثر</span><span>ثقة أعلى</span></div><p>تظهر النتائج التي تتجاوز هذه النسبة فقط.</p></div>
+          <button id="analyze" class="analyze" type="button" disabled><svg><use href="#scan"/></svg><span>ابدأ التحليل</span><svg><use href="#arrow"/></svg></button>
+          <p class="privacy"><svg><use href="#shield"/></svg> ملفاتك تُحلَّل محليًا على جهازك</p>
+          <div id="error" class="error" role="alert" hidden></div>
+        </div>
+      </section>
+
+      <section class="panel results" aria-labelledby="result-title">
+        <div class="panel-heading"><div><span class="step">02</span><h2 id="result-title">معاينة الكشف</h2></div><span id="result-status" class="result-status" role="status">في انتظار الملف</span></div>
+        <div class="preview-toolbar"><div class="preview-tabs" role="group" aria-label="عرض الملف"><button type="button" id="result-tab" class="selected">نتيجة الكشف</button><button type="button" id="original-tab">الملف الأصلي</button></div><button id="new-analysis" class="reset" type="button"><span>＋</span> تحليل جديد</button></div>
+        <div id="preview" class="preview">
+          <div id="empty-state" class="empty-state"><div class="scan-frame"><svg><use href="#scan"/></svg></div><span class="eyebrow">READY WHEN YOU ARE</span><h3>شوف كل تفصيلة بوضوح.</h3><p>ارفع صورة أو فيديو وابدأ التحليل.<br>النتائج ونِسب الثقة هتظهر هنا.</p><div class="empty-tags"><span><svg><use href="#image"/></svg> صور</span><i></i><span><svg><use href="#video"/></svg> فيديو</span></div></div>
+          <img id="preview-image" alt="الصورة ونتيجة الكشف" hidden>
+          <video id="preview-video" controls playsinline hidden></video>
+          <div id="processing" class="processing" hidden><span class="spinner"></span><strong id="progress-message">جاري التحليل…</strong><div class="progress-track"><div id="progress-bar"></div></div><span id="progress-value">0%</span></div>
+          <span id="media-label" class="media-label">DETECTION VIEWPORT</span>
+        </div>
+        <div class="stats"><div><span>العناصر المكتشفة</span><strong id="stat-count">—</strong></div><div><span>متوسط الثقة</span><strong id="stat-confidence">—</strong></div><div><span>وقت المعالجة</span><strong id="stat-time">—</strong></div></div>
+        <div id="details" class="details" hidden><div class="details-heading"><h3>تفاصيل النتائج</h3><span id="frame-note"></span></div><div id="detection-list"></div><p id="no-detections" hidden>لم تظهر عناصر عند نسبة الثقة الحالية. جرّب صورة أوضح أو حدّ ثقة أقل.</p><p class="confidence-note">نسبة الثقة هي تقدير الموديل لكل كشف، وليست مقياسًا لدقة النظام.</p><div class="download-actions"><a id="download-media" class="download" download><svg><use href="#download"/></svg> تنزيل النتيجة</a><a id="download-report" class="report" download>تنزيل التقرير <svg><use href="#arrow"/></svg></a></div></div>
+      </section>
+    </div>
+  </main>
+  <!-- The interaction script is embedded below to keep this project to four files. -->
+  <script>
+  const $ = (id) => document.getElementById(id);
+const state = {kind: 'image', file: null, originalUrl: null, result: null, busy: false, engineReady: false, showingOriginal: false};
+const names = {person: 'شخص', helmet: 'خوذة السلامة', vest: 'سترة واقية', shoes: 'حذاء السلامة', cigarette: 'سيجارة', phone: 'هاتف محمول', fire_extinguisher: 'طفاية حريق'};
+const formats = {image: ['jpg', 'jpeg', 'png', 'webp', 'bmp'], video: ['mp4', 'webm', 'mov', 'avi', 'mkv']};
+const isFilePreview = window.location.protocol === 'file:';
+const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+function showError(message) {
+  $('error').textContent = message;
+  $('error').hidden = !message;
+}
+
+function updateButton() {
+  $('analyze').disabled = !state.file || state.busy || !state.engineReady;
+  $('analyze').querySelector('span').textContent = state.busy ? 'جاري التحليل…' : 'ابدأ التحليل';
+}
+
+function resetResults() {
+  state.result = null;
+  $('details').hidden = true;
+  $('stat-count').textContent = '—';
+  $('stat-confidence').textContent = '—';
+  $('stat-time').textContent = '—';
+  $('result-status').textContent = state.file ? 'جاهز للتحليل' : 'في انتظار الملف';
+}
+
+function preview(original = false) {
+  state.showingOriginal = original;
+  const url = original || !state.result ? state.originalUrl : state.result.media_url;
+  $('original-tab').classList.toggle('selected', original);
+  $('result-tab').classList.toggle('selected', !original);
+  $('preview-video').pause();
+  $('preview-video').hidden = true;
+  $('preview-image').hidden = true;
+  $('empty-state').hidden = Boolean(url);
+  if (!url) return;
+  const element = state.kind === 'image' ? $('preview-image') : $('preview-video');
+  if (element.getAttribute('src') !== url) element.src = url;
+  element.hidden = false;
+  $('media-label').textContent = original || !state.result ? 'ORIGINAL FILE' : 'DETECTION RESULT';
+}
+
+function selectFile(file) {
+  if (!file || state.busy) return;
+  const extension = file.name.split('.').pop().toLowerCase();
+  const kind = formats.image.includes(extension) ? 'image' : formats.video.includes(extension) ? 'video' : null;
+  if (!kind) return showError('صيغة الملف غير مدعومة. اختَر صورة أو فيديو من الصيغ الموضحة.');
+  if (file.size > 100 * 1024 * 1024) return showError('الحد الأقصى لحجم الملف هو 100 ميجابايت.');
+  if (!file.size) return showError('الملف فارغ. اختَر ملفًا آخر.');
+  showError('');
+  setKind(kind, false);
+  if (state.originalUrl) URL.revokeObjectURL(state.originalUrl);
+  state.file = file;
+  state.originalUrl = URL.createObjectURL(file);
+  $('selected-file').hidden = false;
+  $('file-name').textContent = file.name;
+  $('file-size').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+  resetResults();
+  preview(true);
+  updateButton();
+}
+
+function clearFile() {
+  if (state.busy) return;
+  $('preview-video').pause();
+  if (state.originalUrl) URL.revokeObjectURL(state.originalUrl);
+  state.originalUrl = null;
+  state.file = null;
+  $('file-input').value = '';
+  $('selected-file').hidden = true;
+  $('preview-image').removeAttribute('src');
+  $('preview-video').removeAttribute('src');
+  $('preview-video').load();
+  showError('');
+  resetResults();
+  preview();
+  updateButton();
+}
+
+function setKind(kind, clear = true) {
+  if (state.busy) return;
+  if (clear && kind !== state.kind) clearFile();
+  state.kind = kind;
+  document.querySelectorAll('[data-kind]').forEach((button) => button.classList.toggle('selected', button.dataset.kind === kind));
+  $('file-input').accept = formats[kind].map((extension) => `.${extension}`).join(',');
+  $('format-hint').textContent = kind === 'image' ? 'JPG, PNG, WEBP, BMP · حتى 100 MB' : 'MP4, WEBM, MOV, AVI, MKV · حتى 100 MB · دقيقتان';
+}
+
+function setBusy(value) {
+  state.busy = value;
+  $('processing').hidden = !value;
+  $('preview').setAttribute('aria-busy', String(value));
+  ['dropzone', 'remove-file', 'confidence', 'file-input'].forEach((id) => $(id).disabled = value);
+  $('new-analysis').disabled = value;
+  document.querySelectorAll('[data-kind]').forEach((button) => button.disabled = value);
+  updateButton();
+}
+
+function renderResult(result) {
+  state.result = result;
+  $('result-status').textContent = 'اكتمل التحليل';
+  $('stat-count').textContent = result.total_detections.toLocaleString('en-US');
+  $('stat-confidence').textContent = result.total_detections ? `${(result.average_confidence * 100).toFixed(1)}%` : '—';
+  $('stat-time').textContent = `${result.seconds} s`;
+  $('frame-note').textContent = result.kind === 'video' ? `${result.frames} إطار · العدد يشمل تكرار العناصر عبر الإطارات` : 'نتائج الصورة الحالية';
+  $('detection-list').replaceChildren();
+  result.summary.forEach((item) => {
+    const row = document.createElement('div');
+    row.className = 'detection-row';
+    const label = document.createElement('span');
+    label.className = 'detection-label';
+    label.append(document.createElement('i'), document.createTextNode(names[item.label.toLowerCase()] || item.label));
+    const count = document.createElement('span');
+    count.className = 'detection-count';
+    count.textContent = `× ${item.count}`;
+    const confidence = document.createElement('div');
+    confidence.className = 'confidence-cell';
+    confidence.title = 'متوسط الثقة لهذه الفئة';
+    confidence.append(document.createTextNode(`${(item.confidence * 100).toFixed(1)}%`));
+    const track = document.createElement('div');
+    track.className = 'confidence-track';
+    const fill = document.createElement('div');
+    fill.className = 'confidence-fill';
+    fill.style.width = `${item.confidence * 100}%`;
+    track.append(fill);
+    confidence.append(track);
+    row.append(label, count, confidence);
+    $('detection-list').append(row);
+  });
+  $('no-detections').hidden = result.total_detections > 0;
+  $('download-media').href = `${result.media_url}?download=1`;
+  $('download-report').href = `${result.report_url}?download=1`;
+  $('details').hidden = false;
+  preview(false);
+}
+
+async function readResponse(response) {
+  let data;
+  try { data = await response.json(); } catch { throw new Error('تعذّر قراءة استجابة الخادم. تأكد أن التطبيق يعمل ثم حاول مجددًا.'); }
+  if (!response.ok) throw new Error(data.error || 'تعذّر إكمال الطلب. حاول مجددًا.');
+  return data;
+}
+
+async function analyze() {
+  if (!state.file || state.busy) return;
+  showError('');
+  resetResults();
+  preview(true);
+  $('preview-video').pause();
+  setBusy(true);
+  $('result-status').textContent = 'جاري التحليل';
+  $('progress-bar').style.width = '0%';
+  $('progress-value').textContent = '0%';
+  $('progress-message').textContent = 'جاري رفع الملف…';
+  try {
+    const form = new FormData();
+    form.append('file', state.file);
+    form.append('confidence', Number($('confidence').value) / 100);
+    const {job_id} = await readResponse(await fetch('/api/detect', {method: 'POST', body: form}));
+    let failedRequests = 0;
+    while (true) {
+      await sleep(1000);
+      let job;
+      try {
+        job = await readResponse(await fetch(`/api/jobs/${job_id}`, {cache: 'no-store'}));
+        failedRequests = 0;
+      } catch (error) {
+        failedRequests += 1;
+        if (failedRequests >= 5) throw error;
+        $('progress-message').textContent = 'انقطع الاتصال مؤقتًا. جاري إعادة المحاولة…';
+        await sleep(2000);
+        continue;
+      }
+      $('progress-message').textContent = job.message;
+      $('progress-bar').style.width = `${job.progress}%`;
+      $('progress-value').textContent = `${job.progress}%`;
+      if (job.status === 'error') throw new Error(job.message);
+      if (job.status === 'done') { renderResult(job.result); break; }
+    }
+  } catch (error) {
+    showError(error instanceof TypeError ? 'تعذّر الاتصال بالخادم. تأكد أن التطبيق يعمل ثم حاول مجددًا.' : error.message);
+    $('result-status').textContent = 'تعذّر التحليل';
+  } finally { setBusy(false); }
+}
+
+document.querySelectorAll('[data-kind]').forEach((button) => button.addEventListener('click', () => setKind(button.dataset.kind)));
+$('dropzone').addEventListener('click', () => $('file-input').click());
+$('file-input').addEventListener('change', (event) => selectFile(event.target.files[0]));
+$('remove-file').addEventListener('click', clearFile);
+['dragenter', 'dragover'].forEach((name) => $('dropzone').addEventListener(name, (event) => { event.preventDefault(); if (!state.busy) $('dropzone').classList.add('dragover'); }));
+['dragleave', 'drop'].forEach((name) => $('dropzone').addEventListener(name, (event) => { event.preventDefault(); $('dropzone').classList.remove('dragover'); }));
+$('dropzone').addEventListener('drop', (event) => selectFile(event.dataTransfer.files[0]));
+window.addEventListener('dragover', (event) => event.preventDefault());
+window.addEventListener('drop', (event) => event.preventDefault());
+$('confidence').addEventListener('input', () => {
+  $('confidence-value').textContent = `${$('confidence').value}%`;
+});
+$('new-analysis').addEventListener('click', () => {
+  clearFile();
+  $('dropzone').focus();
+});
+['confidence'].forEach((id) => $(id).addEventListener('change', () => { if (state.result) { resetResults(); preview(true); } }));
+$('original-tab').addEventListener('click', () => preview(true));
+$('result-tab').addEventListener('click', () => preview(false));
+$('analyze').addEventListener('click', analyze);
+$('preview-video').addEventListener('error', () => {
+  if (state.file && !state.busy) showError('المتصفح لا يستطيع معاينة صيغة هذا الفيديو. يمكنك بدء التحليل لإنتاج فيديو MP4 قابل للعرض، أو تنزيل النتيجة.');
+});
+window.addEventListener('beforeunload', (event) => { if (state.busy) { event.preventDefault(); event.returnValue = ''; } });
+
+async function connectEngine() {
+  if (isFilePreview) {
+    $('local-preview-note').hidden = false;
+    $('connection-status').textContent = 'معاينة الواجهة';
+    $('analyze').title = 'شغّل python app.py لتجربة الكشف';
+    return;
+  }
+  try {
+    const data = await readResponse(await fetch('/api/status'));
+    state.engineReady = data.ready;
+    $('connection-status').textContent = data.ready ? 'جاهز للتحليل' : 'الموديل غير موجود';
+    $('connection-status').classList.toggle('connected', data.ready);
+    if (!data.ready) showError('ضع model.pt في نفس مجلد app.py.');
+  } catch {
+    $('connection-status').textContent = 'المحرك غير متصل';
+    showError('شغّل python app.py ثم افتح http://127.0.0.1:5000 لتجربة الكشف.');
+  }
+  updateButton();
+}
+connectEngine();
+  </script>
+</body>
+</html>
+
